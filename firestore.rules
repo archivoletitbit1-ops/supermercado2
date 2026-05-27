@@ -40,6 +40,25 @@ service cloud.firestore {
         && item.createdAt is string && item.createdAt.size() <= 50;
     }
 
+    function isValidGroup(group) {
+      return group.keys().hasAll(['password', 'createdAt'])
+        && group.keys().size() == 2
+        && group.password is string && group.password.size() >= 1 && group.password.size() <= 100
+        && group.createdAt is string && group.createdAt.size() <= 50;
+    }
+
+    // Rules for Groups Settings
+    match /groups/{groupId} {
+      allow get, list: if isSignedIn() && isValidId(groupId);
+      allow create: if isSignedIn() 
+                    && isValidId(groupId) 
+                    && isValidGroup(incoming());
+      allow update: if isSignedIn() 
+                    && isValidId(groupId) 
+                    && isValidGroup(incoming());
+      allow delete: if isSignedIn() && isValidId(groupId);
+    }
+
     // Rules for Shopping Items
     match /shopping_items/{itemId} {
       allow get: if isSignedIn() && isValidId(itemId);

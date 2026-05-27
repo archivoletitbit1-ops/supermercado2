@@ -47,6 +47,22 @@
         }
       },
       "required": ["name", "groupId", "createdAt"]
+    },
+    "groups": {
+      "title": "Group Settings",
+      "description": "Optional settings and credentials for a synchronized list",
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string",
+          "description": "The password required to unlock/access this group"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when the group was initialized"
+        }
+      },
+      "required": ["password", "createdAt"]
     }
   },
   "firestore": {
@@ -57,6 +73,10 @@
     "/favorite_items/{favId}": {
       "schema": "favorite_items",
       "description": "Shared favorite items"
+    },
+    "/groups/{groupId}": {
+      "schema": "groups",
+      "description": "Security settings for a group"
     }
   }
 }

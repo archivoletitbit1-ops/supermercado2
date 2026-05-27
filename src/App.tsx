@@ -91,7 +91,10 @@ export default function App() {
   // Group ID setup
   const [groupId, setGroupId] = useState(() => {
     const saved = localStorage.getItem('shopping-list-group-id');
-    return saved ? sanitizeGroupId(saved) : 'familiar';
+    return saved ? sanitizeGroupId(saved) : '';
+  });
+  const [hasConfiguredGroup, setHasConfiguredGroup] = useState(() => {
+    return !!localStorage.getItem('shopping-list-group-id');
   });
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupInput, setGroupInput] = useState(groupId);
@@ -138,7 +141,9 @@ export default function App() {
 
   // Persist group ID to local storage
   useEffect(() => {
-    localStorage.setItem('shopping-list-group-id', groupId);
+    if (groupId) {
+      localStorage.setItem('shopping-list-group-id', groupId);
+    }
   }, [groupId]);
 
   // Check if mobile device is in landscape orientation
@@ -327,6 +332,8 @@ export default function App() {
           setEditingGroup(false);
           setGroupPasswordInput('');
           setJoinSuccess('✓ ¡Conexión con el grupo establecida!');
+          localStorage.setItem('shopping-list-group-id', cleanUser);
+          setHasConfiguredGroup(true);
           setTimeout(() => setJoinSuccess(''), 3000);
           setShowGroupPanel(false);
         } else {
@@ -368,6 +375,8 @@ export default function App() {
       setShowCreateOption(false);
       setJoinError('');
       setJoinSuccess('✓ ¡Se ha creado el nuevo usuario con tu contraseña!');
+      localStorage.setItem('shopping-list-group-id', cleanUser);
+      setHasConfiguredGroup(true);
       setTimeout(() => setJoinSuccess(''), 3000);
       setShowGroupPanel(false);
     } catch (err: any) {
@@ -589,45 +598,49 @@ export default function App() {
             <div className="bg-white p-2 rounded-xl text-emerald-600">
               <ShoppingBasket size={24} />
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <h1 className="text-2xl font-bold tracking-tight text-white leading-none">SuperLista</h1>
-              <p className="text-[10px] text-emerald-100 mt-1.5 uppercase tracking-wider font-semibold font-mono">
-                {groupId}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              {isSyncing ? (
-                <RefreshCw size={13} className="animate-spin text-emerald-200 shrink-0" />
-              ) : (
-                <span className="flex h-2 w-2 relative shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                </span>
+              {hasConfiguredGroup && (
+                <p className="text-[10px] text-emerald-100 mt-1.5 uppercase tracking-wider font-semibold font-mono">
+                  {groupId}
+                </p>
               )}
-              <div className="flex flex-col items-center">
-                <span id="header-items-count" className="text-base font-extrabold text-white leading-none">
-                  {items.length}
-                </span>
-                <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-wider mt-0.5 leading-none text-center">
-                  {items.length === 1 ? 'Artículo' : 'Artículos'}
-                </span>
-              </div>
             </div>
-            
-            <button
-              onClick={() => setShowGroupPanel(!showGroupPanel)}
-              className={`p-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                showGroupPanel 
-                  ? 'bg-emerald-700/80 text-white font-bold rotate-90 scale-105 shadow-inner' 
-                  : 'text-emerald-100 hover:bg-emerald-700/50 hover:text-white'
-              }`}
-              title="Código de Grupo Compartido"
-            >
-              <MoreVertical size={20} />
-            </button>
           </div>
+          {hasConfiguredGroup && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2.5">
+                {isSyncing ? (
+                  <RefreshCw size={13} className="animate-spin text-emerald-200 shrink-0" />
+                ) : (
+                  <span className="flex h-2 w-2 relative shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  </span>
+                )}
+                <div className="flex flex-col items-center">
+                  <span id="header-items-count" className="text-base font-extrabold text-white leading-none">
+                    {items.length}
+                  </span>
+                  <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-wider mt-0.5 leading-none text-center">
+                    {items.length === 1 ? 'Artículo' : 'Artículos'}
+                  </span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setShowGroupPanel(!showGroupPanel)}
+                className={`p-2 rounded-xl transition-all duration-300 cursor-pointer ${
+                  showGroupPanel 
+                    ? 'bg-emerald-700/80 text-white font-bold rotate-90 scale-105 shadow-inner' 
+                    : 'text-emerald-100 hover:bg-emerald-700/50 hover:text-white'
+                }`}
+                title="Código de Grupo Compartido"
+              >
+                <MoreVertical size={20} />
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -761,30 +774,32 @@ export default function App() {
         </AnimatePresence>
 
         {/* Tab Navigation */}
-        <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
-          <button
-            onClick={() => setActiveTab('compras')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
-              activeTab === 'compras' 
-                ? 'bg-emerald-50 text-emerald-700 font-bold shadow-inner' 
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <ShoppingCart size={18} />
-            <span>Compras</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('favoritos')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
-              activeTab === 'favoritos' 
-                ? 'bg-emerald-50 text-emerald-700 font-bold shadow-inner' 
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <Heart size={18} />
-            <span>Favoritos</span>
-          </button>
-        </div>
+        {hasConfiguredGroup && (
+          <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
+            <button
+              onClick={() => setActiveTab('compras')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                activeTab === 'compras' 
+                  ? 'bg-emerald-50 text-emerald-700 font-bold shadow-inner' 
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <ShoppingCart size={18} />
+              <span>Compras</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('favoritos')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                activeTab === 'favoritos' 
+                  ? 'bg-emerald-50 text-emerald-700 font-bold shadow-inner' 
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <Heart size={18} />
+              <span>Favoritos</span>
+            </button>
+          </div>
+        )}
 
         {/* Authentication Fallback spinner */}
         {!isAuthenticated ? (
@@ -792,6 +807,122 @@ export default function App() {
             <RefreshCw size={28} className="animate-spin text-emerald-600" />
             <p className="text-sm font-medium">Conectando con la base de datos compartida...</p>
           </div>
+        ) : !hasConfiguredGroup ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-6"
+          >
+            <div className="bg-emerald-50 text-emerald-600 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+              <ShoppingBasket size={32} />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-slate-800">Bienvenido a SuperLista</h2>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
+                Para comenzar, ingresa un nombre de usuario o grupo y tu contraseña de seguridad.
+              </p>
+            </div>
+
+            {/* Mensajes de Éxito / Feedback */}
+            {joinSuccess && (
+              <div className="text-xs text-center p-3 rounded-xl bg-emerald-50 text-emerald-800 font-semibold border border-emerald-100 animate-pulse">
+                {joinSuccess}
+              </div>
+            )}
+
+            <form onSubmit={changeGroup} className="space-y-4 text-left">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Usuario / Grupo:</label>
+                <input
+                  type="text"
+                  value={groupInput}
+                  onChange={(e) => {
+                    setGroupInput(e.target.value);
+                    setJoinError('');
+                    setShowCreateOption(false);
+                  }}
+                  placeholder="Ej: familia-gomez"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 font-medium placeholder-slate-400"
+                  disabled={isCheckingGroup}
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Contraseña de acceso:</label>
+                <div className="relative">
+                  <input
+                    type={showGroupPasswordInput ? "text" : "password"}
+                    value={groupPasswordInput}
+                    onChange={(e) => {
+                      setGroupPasswordInput(e.target.value);
+                      setJoinError('');
+                      setShowCreateOption(false);
+                    }}
+                    placeholder="Contraseña del grupo..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 font-medium placeholder-slate-400 pr-12"
+                    disabled={isCheckingGroup}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowGroupPasswordInput(!showGroupPasswordInput)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-all"
+                  >
+                    {showGroupPasswordInput ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {joinError && !showCreateOption && (
+                <div className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-100/50">
+                  {joinError}
+                </div>
+              )}
+
+              {/* Crear nuevo usuario si no existe */}
+              {showCreateOption && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
+                  <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                    ⚠️ El usuario <strong className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900">"{groupInput}"</strong> no existe. ¿Deseas crear un nuevo usuario con la contraseña elegida?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCreateAndJoin}
+                    disabled={isCheckingGroup}
+                    className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <Plus size={14} />
+                    <span>Sí, crear nuevo usuario e ingresar</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button 
+                  type="submit" 
+                  disabled={isCheckingGroup}
+                  className="w-full bg-emerald-600 text-white rounded-2xl py-4 text-xs font-bold uppercase tracking-[0.22em] hover:bg-emerald-700 shadow-md shadow-emerald-100 active:scale-95 disabled:opacity-50 cursor-pointer text-center flex items-center justify-center gap-2 transition-all"
+                >
+                  {isCheckingGroup ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Verificando grupo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Unlock size={14} />
+                      <span>Ingresar al Grupo</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            <p className="text-[10px] text-slate-400 text-center leading-relaxed max-w-sm mx-auto">
+              Cualquier persona con el usuario y contraseña correctos podrá sincronizar e ingresar al grupo en tiempo real.
+            </p>
+          </motion.div>
         ) : !groupLoaded ? (
           <div className="text-center py-16 text-slate-400 flex flex-col items-center gap-3">
             <RefreshCw size={28} className="animate-spin text-emerald-600" />

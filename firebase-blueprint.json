@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "shopping_items": {
+      "title": "Shopping Item",
+      "description": "An item in the shared supermarket shopping list",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the item"
+        },
+        "quantity": {
+          "type": "string",
+          "description": "Quantity of the item"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the item has been bought"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Identifier for the shared group list"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when the item was added"
+        }
+      },
+      "required": ["name", "quantity", "completed", "groupId", "createdAt"]
+    },
+    "favorite_items": {
+      "title": "Favorite Item",
+      "description": "An item saved in the shared group's favorites list",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the favorite item"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Identifier for the shared group list"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when the favorite was added"
+        }
+      },
+      "required": ["name", "groupId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/shopping_items/{itemId}": {
+      "schema": "shopping_items",
+      "description": "Shared shopping list items"
+    },
+    "/favorite_items/{favId}": {
+      "schema": "favorite_items",
+      "description": "Shared favorite items"
+    }
+  }
+}

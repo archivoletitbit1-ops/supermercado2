@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable validators
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return true;
+    }
+
+    function isValidShoppingItem(item) {
+      return item.keys().hasAll(['name', 'quantity', 'completed', 'groupId', 'createdAt'])
+        && item.keys().size() == 5
+        && item.name is string && item.name.size() > 0 && item.name.size() <= 200
+        && item.quantity is string && item.quantity.size() <= 50
+        && item.completed is bool
+        && item.groupId is string && item.groupId.size() > 0 && item.groupId.size() <= 100
+        && item.createdAt is string && item.createdAt.size() <= 50;
+    }
+
+    function isValidFavoriteItem(item) {
+      return item.keys().hasAll(['name', 'groupId', 'createdAt'])
+        && item.keys().size() == 3
+        && item.name is string && item.name.size() > 0 && item.name.size() <= 200
+        && item.groupId is string && item.groupId.size() > 0 && item.groupId.size() <= 100
+        && item.createdAt is string && item.createdAt.size() <= 50;
+    }
+
+    // Rules for Shopping Items
+    match /shopping_items/{itemId} {
+      allow get: if isSignedIn() && isValidId(itemId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() 
+                    && isValidId(itemId) 
+                    && isValidShoppingItem(incoming());
+      allow update: if isSignedIn() 
+                    && isValidId(itemId) 
+                    && isValidShoppingItem(incoming())
+                    && (
+                      incoming().diff(existing()).affectedKeys().hasOnly(['name', 'quantity', 'completed'])
+                    );
+      allow delete: if isSignedIn() && isValidId(itemId);
+    }
+
+    // Rules for Favorite Items
+    match /favorite_items/{favId} {
+      allow get: if isSignedIn() && isValidId(favId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() 
+                    && isValidId(favId) 
+                    && isValidFavoriteItem(incoming());
+      allow update: if isSignedIn() 
+                    && isValidId(favId) 
+                    && isValidFavoriteItem(incoming())
+                    && (
+                      incoming().diff(existing()).affectedKeys().hasOnly(['name'])
+                    );
+      allow delete: if isSignedIn() && isValidId(favId);
+    }
+  }
+}

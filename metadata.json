@@ -1,0 +1,6 @@
+{
+  "name": "SuperLista - Anotador de Compras",
+  "description": "Una aplicación sencilla y elegante para organizar tus compras del supermercado con lista de favoritos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

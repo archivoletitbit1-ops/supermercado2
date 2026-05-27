@@ -1,16 +1,22 @@
 {
   "name": "Calendario Alcorta",
-  "short_name": "Alcorta",
+  "short_name": "Calendario Alcorta",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#ff0000", 
+  "theme_color": "#ff0000",
   "icons": [
     {
       "src": "/favicon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

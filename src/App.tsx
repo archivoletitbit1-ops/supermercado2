@@ -93,9 +93,6 @@ export default function App() {
     const saved = localStorage.getItem('shopping-list-group-id');
     return saved ? sanitizeGroupId(saved) : '';
   });
-  const [hasConfiguredGroup, setHasConfiguredGroup] = useState(() => {
-    return !!localStorage.getItem('shopping-list-group-id');
-  });
   const [editingGroup, setEditingGroup] = useState(false);
   const [groupInput, setGroupInput] = useState(groupId);
   const [copiedGroup, setCopiedGroup] = useState(false);
@@ -191,7 +188,10 @@ export default function App() {
 
   // Subscribe to Group Settings/Credentials in Real-Time
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !groupId) {
+      setGroupLoaded(true);
+      return;
+    }
     
     setGroupLoaded(false);
     setPasswordInput('');
@@ -332,8 +332,6 @@ export default function App() {
           setEditingGroup(false);
           setGroupPasswordInput('');
           setJoinSuccess('✓ ¡Conexión con el grupo establecida!');
-          localStorage.setItem('shopping-list-group-id', cleanUser);
-          setHasConfiguredGroup(true);
           setTimeout(() => setJoinSuccess(''), 3000);
           setShowGroupPanel(false);
         } else {
@@ -375,8 +373,6 @@ export default function App() {
       setShowCreateOption(false);
       setJoinError('');
       setJoinSuccess('✓ ¡Se ha creado el nuevo usuario con tu contraseña!');
-      localStorage.setItem('shopping-list-group-id', cleanUser);
-      setHasConfiguredGroup(true);
       setTimeout(() => setJoinSuccess(''), 3000);
       setShowGroupPanel(false);
     } catch (err: any) {
@@ -598,16 +594,16 @@ export default function App() {
             <div className="bg-white p-2 rounded-xl text-emerald-600">
               <ShoppingBasket size={24} />
             </div>
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start justify-center">
               <h1 className="text-2xl font-bold tracking-tight text-white leading-none">SuperLista</h1>
-              {hasConfiguredGroup && (
+              {groupId && (
                 <p className="text-[10px] text-emerald-100 mt-1.5 uppercase tracking-wider font-semibold font-mono">
                   {groupId}
                 </p>
               )}
             </div>
           </div>
-          {hasConfiguredGroup && (
+          {groupId && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2.5">
                 {isSyncing ? (
@@ -774,7 +770,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* Tab Navigation */}
-        {hasConfiguredGroup && (
+        {groupId && (
           <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-slate-100">
             <button
               onClick={() => setActiveTab('compras')}
@@ -807,13 +803,13 @@ export default function App() {
             <RefreshCw size={28} className="animate-spin text-emerald-600" />
             <p className="text-sm font-medium">Conectando con la base de datos compartida...</p>
           </div>
-        ) : !hasConfiguredGroup ? (
+        ) : !groupId ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-6"
           >
-            <div className="bg-emerald-50 text-emerald-600 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+            <div className="bg-emerald-50 text-emerald-600 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto shadow-inner animate-bounce">
               <ShoppingBasket size={32} />
             </div>
             

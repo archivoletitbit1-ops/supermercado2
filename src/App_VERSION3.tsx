@@ -344,7 +344,7 @@ export default function App() {
           setTimeout(() => setJoinSuccess(''), 3000);
           setShowGroupPanel(false);
         } else {
-          setJoinError('La contraseña es incorrecta para este usuario/grupo.');
+          setJoinError('La contraseña is incorrecta para este usuario/grupo.');
         }
       } else {
         // User/group does not exist! Offer to create it
@@ -753,8 +753,6 @@ export default function App() {
                   </span>
                 </div>
 
-
-
                 {/* Mensajes de Éxito / Feedback */}
                 {joinSuccess && (
                   <div className="text-xs text-center p-3 rounded-xl bg-emerald-50 text-emerald-800 font-semibold border border-emerald-100 animate-pulse">
@@ -924,7 +922,7 @@ export default function App() {
               <div className="space-y-1">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Usuario / Grupo:</label>
                 <input
-                  type="text"
+                   type="text"
                   value={groupInput}
                   onChange={(e) => {
                     setGroupInput(e.target.value);

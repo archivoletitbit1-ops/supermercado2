@@ -136,15 +136,6 @@ export default function App() {
   const [showCreateOption, setShowCreateOption] = useState(false);
   const [isCheckingGroup, setIsCheckingGroup] = useState(false);
 
-  // Secret delete group states
-  const [lastTapTime, setLastTapTime] = useState(0);
-  const [tapCount, setTapCount] = useState(0);
-  const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
-  const [deletePasswordInput, setDeletePasswordInput] = useState('');
-  const [deleteError, setDeleteError] = useState('');
-  const [isDeletingGroup, setIsDeletingGroup] = useState(false);
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
-
   // Persist group ID to local storage
   useEffect(() => {
     if (groupId) {
@@ -389,83 +380,6 @@ export default function App() {
       console.error(err);
     } finally {
       setIsCheckingGroup(false);
-    }
-  };
-
-  const handleUsersClick = () => {
-    const now = Date.now();
-    if (now - lastTapTime < 800) {
-      const newCount = tapCount + 1;
-      if (newCount >= 3) {
-        setDeletePasswordInput('');
-        setDeleteError('');
-        setShowDeleteGroupModal(true);
-        setTapCount(0);
-      } else {
-        setTapCount(newCount);
-      }
-    } else {
-      setTapCount(1);
-    }
-    setLastTapTime(now);
-  };
-
-  const handleDeleteGroup = async (e: FormEvent) => {
-    e.preventDefault();
-    setDeleteError('');
-
-    if (!groupId) return;
-
-    if (!groupData || !groupData.password) {
-      setDeleteError('No se pudo verificar la contraseña del grupo actual.');
-      return;
-    }
-
-    if (deletePasswordInput !== groupData.password) {
-      setDeleteError('La contraseña introducida es incorrecta.');
-      return;
-    }
-
-    setIsDeletingGroup(true);
-    try {
-      const batch = writeBatch(db);
-
-      // Delete items
-      items.forEach(item => {
-        batch.delete(doc(db, 'shopping_items', item.id));
-      });
-
-      // Delete favorites
-      favorites.forEach(fav => {
-        batch.delete(doc(db, 'favorite_items', fav.id));
-      });
-
-      // Delete group
-      batch.delete(doc(db, 'groups', groupId));
-
-      await batch.commit();
-
-      // Clear local states
-      setUnlockedGroups(prev => {
-        const updated = { ...prev };
-        delete updated[groupId];
-        return updated;
-      });
-
-      setGroupId('');
-      setGroupInput('');
-      setGroupData(null);
-      setShowDeleteGroupModal(false);
-      setDeletePasswordInput('');
-      setShowGroupPanel(false);
-
-      setJoinSuccess('✓ ¡El grupo ha sido eliminado definitivamente!');
-      setTimeout(() => setJoinSuccess(''), 4000);
-    } catch (err: any) {
-      console.error(err);
-      setDeleteError('Error al eliminar el grupo de la base de datos.');
-    } finally {
-      setIsDeletingGroup(false);
     }
   };
 
@@ -740,14 +654,7 @@ export default function App() {
               <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm space-y-4 mb-2">
                 {/* Cabecera del Panel */}
                 <div className="flex items-center gap-2 text-slate-800 font-bold text-sm border-b border-slate-100 pb-3">
-                  <button
-                    type="button"
-                    onClick={handleUsersClick}
-                    className="text-emerald-600 hover:scale-110 active:scale-95 transition-all focus:outline-none cursor-pointer p-0"
-                    title="Control de grupo"
-                  >
-                    <Users size={18} />
-                  </button>
+                  <Users size={18} className="text-emerald-600" />
                   <span className="text-slate-700 font-semibold text-xs ml-0.5">
                     Grupo actual: <strong className="font-mono text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-100/50 text-xs">{groupId}</strong>
                   </span>
@@ -950,7 +857,7 @@ export default function App() {
                       setShowCreateOption(false);
                     }}
                     placeholder="Contraseña del grupo..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs focus:ring-2 focus:ring-emerald-500 outline-none text-slate-900 font-medium placeholder-slate-400 pr-12"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs focus:ring-2 focus:ring-emerald-500 outline-none text-slate-950 font-medium placeholder-slate-400 pr-12"
                     disabled={isCheckingGroup}
                   />
                   <button
@@ -1095,6 +1002,39 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
+                {/* Form to add item */}
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Nuevo Artículo</h3>
+                  <div className="flex gap-2">
+                    <div className="flex-[3] relative">
+                      <input
+                        type="text"
+                        placeholder="Ej: Leche..."
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addItem(newItemName, newItemQty)}
+                        className="w-full bg-slate-50 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-emerald-500 transition-all outline-none"
+                      />
+                    </div>
+                    <div className="flex-[1]">
+                      <input
+                        type="text"
+                        placeholder="Cant."
+                        value={newItemQty}
+                        onChange={(e) => setNewItemQty(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addItem(newItemName, newItemQty)}
+                        className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-center focus:ring-2 focus:ring-emerald-500 transition-all outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={() => addItem(newItemName, newItemQty)}
+                      className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-200 active:scale-95 cursor-pointer"
+                    >
+                      <Plus size={24} />
+                    </button>
+                  </div>
+                </div>
+
                 {/* Items List */}
                 <div className="space-y-3">
                   {items.length === 0 ? (
@@ -1127,10 +1067,8 @@ export default function App() {
                             />
                             <input
                               type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
                               value={editQty}
-                              onChange={(e) => setEditQty(e.target.value.replace(/[^0-9]/g, ''))}
+                              onChange={(e) => setEditQty(e.target.value)}
                               className="w-16 bg-slate-100 border-0 rounded-xl p-2 text-center outline-none focus:ring-2 focus:ring-emerald-500"
                             />
                             <button onClick={saveEdit} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg cursor-pointer">
@@ -1202,43 +1140,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
               >
-                {/* Form to add item */}
-                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Nuevo Artículo</h3>
-                  <div className="flex gap-2">
-                    <div className="flex-[3] relative">
-                      <input
-                        type="text"
-                        placeholder="Ej: Leche..."
-                        value={newItemName}
-                        onChange={(e) => setNewItemName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addItem(newItemName, newItemQty)}
-                        className="w-full bg-slate-50 border-0 rounded-2xl p-4 focus:ring-2 focus:ring-emerald-500 transition-all outline-none"
-                      />
-                    </div>
-                    <div className="flex-[1]">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="Cant."
-                        value={newItemQty}
-                        onChange={(e) => setNewItemQty(e.target.value.replace(/[^0-9]/g, ''))}
-                        onKeyDown={(e) => e.key === 'Enter' && addItem(newItemName, newItemQty)}
-                        className="w-full bg-slate-50 border-0 rounded-2xl p-4 text-center focus:ring-2 focus:ring-emerald-500 transition-all outline-none"
-                      />
-                    </div>
-                    <button
-                      onClick={() => addItem(newItemName, newItemQty)}
-                      className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-200 active:scale-95 cursor-pointer"
-                    >
-                      <Plus size={24} />
-                    </button>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-2 gap-3">
                   {favorites.length === 0 ? (
                     <div className="col-span-2 text-center py-12 text-slate-400">
@@ -1275,8 +1177,8 @@ export default function App() {
                             </div>
                             
                             <div className="min-w-0 flex-1">
-                              <span className={`font-semibold text-xs transition-colors break-words block ${
-                                isSelected ? 'text-emerald-900 font-bold' : 'text-slate-800'
+                              <span className={`font-semibold text-sm transition-colors truncate block ${
+                                isSelected ? 'text-emerald-950 font-bold' : 'text-slate-800'
                               }`}>
                                 {fav.name}
                               </span>
@@ -1484,97 +1386,6 @@ export default function App() {
                   Agregar
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Confirmation Modal for Deleting Group */}
-      <AnimatePresence>
-        {showDeleteGroupModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 pointer-events-auto"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-left"
-            >
-              <div className="bg-rose-50 text-rose-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={24} className="animate-bounce" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 text-center mb-2">¿Eliminar grupo por completo?</h3>
-              <p className="text-xs text-rose-600 font-bold bg-rose-50 border border-rose-100 p-3 rounded-2xl mb-4 leading-relaxed text-center">
-                ⚠️ ¡ADVERTENCIA!: Esta acción borrará permanentemente el grupo "{groupId}", todos sus artículos y favoritos. ¡ESTA ACCIÓN NO PUEDE SER REVERTIDA!
-              </p>
-              
-              <form onSubmit={handleDeleteGroup} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Introduce la contraseña del grupo para confirmar:
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showDeletePassword ? "text" : "password"}
-                      value={deletePasswordInput}
-                      onChange={(e) => {
-                        setDeletePasswordInput(e.target.value);
-                        setDeleteError('');
-                      }}
-                      placeholder="Contraseña..."
-                      required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs focus:ring-2 focus:ring-rose-500 outline-none text-slate-900 font-medium placeholder-slate-400 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowDeletePassword(!showDeletePassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                    >
-                      {showDeletePassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
-                {deleteError && (
-                  <div className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-100/50 text-center">
-                    {deleteError}
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDeleteGroupModal(false);
-                      setDeletePasswordInput('');
-                      setDeleteError('');
-                    }}
-                    disabled={isDeletingGroup}
-                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold transition-all text-sm cursor-pointer disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isDeletingGroup}
-                    className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition-all text-sm shadow-md shadow-rose-200 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 animate-pulse"
-                  >
-                    {isDeletingGroup ? (
-                      <>
-                        <RefreshCw size={14} className="animate-spin" />
-                        <span>Borrando...</span>
-                      </>
-                    ) : (
-                      <span>Eliminar</span>
-                    )}
-                  </button>
-                </div>
-              </form>
             </motion.div>
           </motion.div>
         )}

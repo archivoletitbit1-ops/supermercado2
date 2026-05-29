@@ -1151,7 +1151,7 @@ export default function App() {
                               <div className="flex flex-col">
                                 <span className={`font-medium text-lg leading-tight transition-all ${
                                   item.completed ? 'text-slate-400 line-through' : 'text-slate-800'
-                                }`}>
+                                }}`}>
                                   {item.name}
                                 </span>
                                 <span className="text-xs text-slate-400 font-medium">CANTIDAD: {item.quantity}</span>
@@ -1275,7 +1275,7 @@ export default function App() {
                             </div>
                             
                             <div className="min-w-0 flex-1">
-                              <span className={`font-semibold text-xs transition-colors break-words block ${
+                              <span className={`font-semibold text-sm transition-colors truncate block ${
                                 isSelected ? 'text-emerald-900 font-bold' : 'text-slate-800'
                               }`}>
                                 {fav.name}
@@ -1339,7 +1339,7 @@ export default function App() {
                       }`}
                     >
                       <Plus size={14} />
-                      Agregar {selectedFavIds.length > 0 ? `(${selectedFavIds.length})` : ''} a Compras
+                      Agregar {selectedFavIds.length > 0 ? `(${selectedFavIds.length})` : ''} to Compras
                     </button>
                   </div>
                 )}
